@@ -1,5 +1,6 @@
 import { apiInstructions, balanceSchema, validateAddress, txSchema } from '../lib/util';
 import axios from 'axios';
+import 'babel-polyfill';
 import EthereumTx from 'ethereumjs-tx';
 import { Router } from 'express';
 import { default as Web3 } from 'web3';
@@ -20,7 +21,7 @@ export default ({ config }) => {
     });
 
     //Get the balance of an ethereum address
-    api.get('/getBalance/:address', validate(balanceSchema), async (req, res, next) => {
+    api.get('/getBalance/:address', validate(balanceSchema), async (req, res) => {
         const address = validateAddress(req.params.address);
 
         const balance = await web3.eth.getBalance(address);
