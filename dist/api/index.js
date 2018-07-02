@@ -20,6 +20,9 @@ exports.default = function (_ref) {
 
 	var api = (0, _express.Router)();
 
+	console.log('api config =', config);
+	console.log('api db =', db);
+
 	// mount the facets resource
 	api.use('/facets', (0, _facets2.default)({ config: config, db: db }));
 

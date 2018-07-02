@@ -9,6 +9,9 @@
  *		}
  */
 export function toRes(res, status=200) {
+
+	console.log('util =', res)
+	
 	return (err, thing) => {
 		if (err) return res.status(500).send(err);
 

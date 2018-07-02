@@ -1,7 +1,7 @@
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-	value: true
+    value: true
 });
 
 var _http = require('http');
@@ -50,25 +50,31 @@ app.use((0, _morgan2.default)('dev'));
 
 // 3rd party middleware
 app.use((0, _cors2.default)({
-	exposedHeaders: _config2.default.corsHeaders
+    exposedHeaders: _config2.default.corsHeaders
 }));
 
 app.use(_bodyParser2.default.json({
-	limit: _config2.default.bodyLimit
+    limit: _config2.default.bodyLimit
 }));
 
-// connect to db
+console.log('index api =', _api2.default);
+
+// // connect to db
 (0, _db2.default)(function (db) {
 
-	// internal middleware
-	app.use((0, _middleware2.default)({ config: _config2.default, db: db }));
+    // app.get('/', function (req, res) {
+    // 	res.send('GET request to the homepage')
+    // });
 
-	// api router
-	app.use('/api', (0, _api2.default)({ config: _config2.default, db: db }));
+    // internal middleware
+    app.use((0, _middleware2.default)({ config: _config2.default, db: db }));
 
-	app.server.listen(process.env.PORT || _config2.default.port, function () {
-		console.log('Started on port ' + app.server.address().port);
-	});
+    // api router
+    app.use('/api', (0, _api2.default)({ config: _config2.default, db: db }));
+
+    app.server.listen(process.env.PORT || _config2.default.port, function () {
+        console.log('Started on port ' + app.server.address().port);
+    });
 });
 
 exports.default = app;

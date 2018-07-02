@@ -1,7 +1,7 @@
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+	value: true
 });
 exports.toRes = toRes;
 
@@ -15,15 +15,18 @@ exports.toRes = toRes;
  *		}
  */
 function toRes(res) {
-  var status = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 200;
+	var status = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 200;
 
-  return function (err, thing) {
-    if (err) return res.status(500).send(err);
 
-    if (thing && typeof thing.toObject === 'function') {
-      thing = thing.toObject();
-    }
-    res.status(status).json(thing);
-  };
+	console.log('util =', res);
+
+	return function (err, thing) {
+		if (err) return res.status(500).send(err);
+
+		if (thing && typeof thing.toObject === 'function') {
+			thing = thing.toObject();
+		}
+		res.status(status).json(thing);
+	};
 }
 //# sourceMappingURL=util.js.map

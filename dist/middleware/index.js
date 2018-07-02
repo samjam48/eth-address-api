@@ -12,6 +12,9 @@ exports.default = function (_ref) {
 
 	var routes = (0, _express.Router)();
 
+	console.log('middleware config =', config);
+	console.log('middleware db =', db);
+
 	// add middleware here
 
 	return routes;

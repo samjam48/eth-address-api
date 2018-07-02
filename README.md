@@ -1,30 +1,13 @@
 Express & ES6 REST API Boilerplate
 ==================================
 
-This is a straightforward boilerplate for building REST APIs with ES6 and Express.
-
 - ES6 support via [babel](https://babeljs.io)
 - REST resources as middleware via [resource-router-middleware](https://github.com/developit/resource-router-middleware)
-- CORS support via [cors](https://github.com/troygoode/node-cors)
-- Body Parsing via [body-parser](https://github.com/expressjs/body-parser)
-
-> Tip: If you are using [Mongoose](https://github.com/Automattic/mongoose), you can automatically expose your Models as REST resources using [restful-mongoose](https://git.io/restful-mongoose).
-
-
 
 Getting Started
 ---------------
 
 ```sh
-# clone it
-git clone git@github.com:developit/express-es6-rest-api.git
-cd express-es6-rest-api
-
-# Make it your own
-rm -rf .git && git init && npm init
-
-# Install dependencies
-npm install
 
 # Start development live-reload server
 PORT=8080 npm run dev
@@ -51,7 +34,23 @@ docker run -p 8080:8080 es6/api-service
 
 ```
 
-License
--------
+# Challenge
 
-MIT
+## The API should have 3 routes:
+
+• GET /createWallet Generates a new Ethereum wallet and return and object with the private key and the public ETH address
+• GET /getBalance/:param Get the balance of an ethereum address
+• POST /transaction {privateKey, destination, amount} Creates a transaction to send ETH from one address to another. It can receive 3 raw JSON params: privateKey of the source ETH address, destination is the ETH destination address and amount the number of ETH to be send.
+
+The project has to be pushed to Github and can be run just by cloning the repo, npm install and npm start so make sure all your dependencies are in your package.json
+
+#### Tasks
+
+- Build tests for each operation
+- Build each operation
+- clean up code
+    - clean out DB files
+    - clean out console logs
+    - make README
+    - get someone to check code seems good
+- make it work when you download. npm install. npm start
