@@ -1,109 +1,59 @@
+import { apiInstructions, balanceSchema, validateAddress, txSchema } from '../lib/util';
+import axios from 'axios';
+import EthereumTx from 'ethereumjs-tx';
 import { Router } from 'express';
-import ethWallet from 'ethereumjs-wallet';
-const Tx = require('ethereumjs-tx');
-const axios = require('axios');
-const Web3 = require('web3');
+import { default as Web3 } from 'web3';
+import validate from 'express-validation';
 
 export default ({ config }) => {
     let api = Router();
-    const web3 = new Web3( new Web3.providers.HttpProvider("https://rinkeby.infura.io/2uLY7asRwYR8AIrXRisS") );
+    const web3 = new Web3( new Web3.providers.HttpProvider("https://rinkeby.infura.io/") );
 
     api.get('/', (req, res) => {
-        let apiInstructions = { 
-            "use": "an api for basic wallet functionalities on the ethereum network",
-            "routes": {
-                "/createWallet": {
-                    "type": "GET",
-                    "paramaters": "none",
-                    "returns": {
-                        "privateKey": "string",
-                        "publicAddress": "string"
-                    }
-                },
-                "/getBalance:param": {
-                    "type": "GET",
-                    "paramaters": "string - valid public Ethereum address",
-                    "returns": {
-                        "privateKey": "string",
-                        "publicAddress": "string"
-                    }
-
-                },
-                "/transaction": {
-                    "type": "POST",
-                    "paramaters": {
-                        "privateKey": "string - valid private Ethereum wallet key",
-                        "destination": "string - valid public Ethereum address",
-                        "amount": "number - amount of Ethereum to send (unit Eth)"
-                    },
-                    "returns": {
-                        "privateKey": "string",
-                        "publicAddress": "string"
-                    }
-
-                }
-            }
-        }
-
         res.json( apiInstructions );
     });
 
     // Generate a new Ethereum wallet and return an object with the private key and the public ETH address
     api.get('/createWallet', (req, res) => {
-        let wallet = ethWallet.generate();
-
-        res.json({
-            "privateKey": wallet.getPrivateKeyString(),
-            "publicEthAddress": wallet.getAddressString()
-        });
+        let wallet = web3.eth.accounts.create();
+        res.json(wallet);
     });
 
     //Get the balance of an ethereum address
-    api.get('/getBalance/:address', (req, res) => {
-        const address = req.params.address
+    api.get('/getBalance/:address', validate(balanceSchema), async (req, res, next) => {
+        const address = validateAddress(req.params.address);
 
-        if(web3.isAddress(address)){
-            const balance = web3.eth.getBalance(address);
-            res.json({ balance, "units": "wei" });
-        }
-        res.json({ "balance": "Invalid Ethereum addresss" })
+        const balance = await web3.eth.getBalance(address);
+        res.json({ balance, "units": "wei" });
     });
 
     // Creates a transaction to send ETH from one address to another
-    api.post('/transaction', async (req, res) => {
-
-        // add validation
-
+    api.post('/transaction', validate(txSchema), async (req, res, next) => {
         const { privateKey, destination, amount } = req.body;
-        // if(web3.isAddress(destination)) console.log('address exists');
+        const privateKeyBuffer   = new Buffer(privateKey, 'hex');
+        const destinationAddress = validateAddress(destination);
 
-        var publicAddress   = await web3.eth.accounts.privateKeyToAccount("0x" + privateKey).address;
-        let gasPrices       = await axios.get('https://ethgasstation.info/json/ethgasAPI.json');
-        let nonce           = await web3.eth.getTransactionCount(publicAddress);
-        let txValue         = web3.utils.toHex( web3.utils.toWei(amount, 'ether') );
+        const publicAddress      = await web3.eth.accounts.privateKeyToAccount("0x" + privateKey).address;
+        const gasPrices          = await axios.get('https://ethgasstation.info/json/ethgasAPI.json');
+        const nonce              = await web3.eth.getTransactionCount(publicAddress);
+        const txValue            = web3.utils.toHex( web3.utils.toWei(amount.toString(), 'ether') );
 
         let rawTx  = {
-                "from": publicAddress,
-                "to": destination,
+                "to": destinationAddress,
                 "value": txValue,
                 "gasPrice": gasPrices.data.safeLow * 100000000,
                 "nonce": nonce,
                 "chainId": 4    // EIP 155 chainId - mainnet: 1, rinkeby: 4
             }
-        rawTx.gas  = await web3.eth.estimateGas(rawTx)
-        web3.eth.defaultAccount = publicAddress;
+        rawTx.gas                = await web3.eth.estimateGas(rawTx)
+        web3.eth.defaultAccount  = publicAddress;
 
-        const tx            = new Tx(rawTx);
-        tx.sign( new Buffer(privateKey, 'hex') );
-        const serializedTx  = tx.serialize();
-        console.log('serializedTx', serializedTx);
-
-        const txDetails = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
-
-        const url = `https://rinkeby.etherscan.io/tx/${txDetails.transactionHash}`
-        console.log("success - url is here - ", url);
+        const tx                 = new EthereumTx(rawTx);
+        tx.sign( privateKeyBuffer );
+        const serializedTx       = tx.serialize();
+        const txDetails          = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
         res.json(txDetails);
-    })
+    });
 
     return api;
 }
